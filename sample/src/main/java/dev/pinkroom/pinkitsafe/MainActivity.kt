@@ -4,14 +4,12 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.Button
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
+import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import dev.pinkroom.pinkitsafe.ui.theme.PinkItSafeTheme
 
 class MainActivity : AppCompatActivity() {
@@ -40,36 +38,39 @@ private fun MainScreen() {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        var counter by remember { mutableStateOf(0) }
+        var key by remember { mutableStateOf("") }
+        var value by remember { mutableStateOf("") }
 
-        Text(text = counter.toString())
-
-        Button(
-            modifier = Modifier
-                .wrapContentWidth()
-                .wrapContentHeight(),
-            onClick = {
-                biometrics.authenticate {
-                    counter = (safeStorage.get("counter") ?: 0) + 1
-                    safeStorage.save("counter", counter)
-                }
-            }
-        ) {
-            Text(text = "Increment")
-        }
-
-        Button(
-            modifier = Modifier
-                .wrapContentWidth()
-                .wrapContentHeight(),
-            onClick = {
-                biometrics.authenticate {
-                    safeStorage.clear()
-                    counter = safeStorage.get("counter") ?: 0
-                }
-            }
-        ) {
-            Text(text = "Clear")
+        OutlinedTextField(
+            value = key,
+            onValueChange = { key = it },
+            label = { Text(text = "Key") },
+        )
+        OutlinedTextField(
+            value = value,
+            onValueChange = { value = it },
+            label = { Text(text = "Value") },
+        )
+        Row(modifier = Modifier.padding(top = 8.dp)) {
+            Button(
+                onClick = { biometrics.authenticate { safeStorage.save(key, value) } },
+                content = { Text(text = "Save") },
+            )
+            Button(
+                modifier = Modifier.padding(horizontal = 8.dp),
+                onClick = { biometrics.authenticate { value = safeStorage.get(key) } },
+                content = { Text(text = "Get") },
+            )
+            Button(
+                onClick = {
+                    biometrics.authenticate {
+                        safeStorage.clear()
+                        key = ""
+                        value = ""
+                    }
+                },
+                content = { Text(text = "Clear") },
+            )
         }
     }
 }
