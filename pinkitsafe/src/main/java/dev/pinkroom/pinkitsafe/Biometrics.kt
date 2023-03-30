@@ -37,18 +37,20 @@ class Biometrics private constructor() {
         error: (errorCode: Int, errString: CharSequence) -> Unit = { _, _ -> },
         success: () -> Unit,
     ) {
-        validateBiometricsAvailable()
+        validateBiometricsAvailable(allowedAuthenticators)
         val biometricPrompt = buildBiometricPrompt(success, error)
         val promptInfo =
             buildPromptInfo(title, subtitle, description, negativeButtonText, allowedAuthenticators)
         biometricPrompt.authenticate(promptInfo)
     }
 
-    private fun validateBiometricsAvailable() {
-        if (canAuthenticate() != BiometricManager.BIOMETRIC_SUCCESS) throw BiometricsNotAvailable()
+    private fun validateBiometricsAvailable(allowedAuthenticators: @AuthenticatorTypes Int) {
+        if (canAuthenticate(allowedAuthenticators) == BiometricManager.BIOMETRIC_SUCCESS) return
+        throw BiometricsNotAvailable()
     }
 
-    private fun canAuthenticate() = BiometricManager.from(context).canAuthenticate()
+    private fun canAuthenticate(allowedAuthenticators: @AuthenticatorTypes Int) =
+        BiometricManager.from(context).canAuthenticate(allowedAuthenticators)
 
     private fun buildBiometricPrompt(
         success: () -> Unit,
