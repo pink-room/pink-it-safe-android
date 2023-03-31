@@ -2,6 +2,7 @@ package dev.pinkroom.pinkitsafe
 
 import android.content.Context
 import androidx.biometric.BiometricManager
+import androidx.biometric.BiometricManager.Authenticators
 import androidx.biometric.BiometricPrompt
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -33,21 +34,19 @@ class Biometrics private constructor() {
         subtitle: String? = null,
         description: String? = null,
         negativeButtonText: String = context.getString(android.R.string.cancel),
-        allowedAuthenticators: @AuthenticatorTypes Int = BiometricManager.Authenticators.BIOMETRIC_STRONG,
+        allowedAuthenticators: @AuthenticatorTypes Int = Authenticators.BIOMETRIC_STRONG,
         error: (errorCode: Int, errString: CharSequence) -> Unit = { _, _ -> },
         success: () -> Unit,
     ) {
-        validateBiometricsAvailable(allowedAuthenticators)
         val biometricPrompt = buildBiometricPrompt(success, error)
         val promptInfo =
             buildPromptInfo(title, subtitle, description, negativeButtonText, allowedAuthenticators)
         biometricPrompt.authenticate(promptInfo)
     }
 
-    private fun validateBiometricsAvailable(allowedAuthenticators: @AuthenticatorTypes Int) {
-        if (canAuthenticate(allowedAuthenticators) == BiometricManager.BIOMETRIC_SUCCESS) return
-        throw BiometricsNotAvailable()
-    }
+    fun isAvailable(
+        allowedAuthenticators: @AuthenticatorTypes Int = Authenticators.BIOMETRIC_STRONG
+    ) = canAuthenticate(allowedAuthenticators) == BiometricManager.BIOMETRIC_SUCCESS
 
     private fun canAuthenticate(allowedAuthenticators: @AuthenticatorTypes Int) =
         BiometricManager.from(context).canAuthenticate(allowedAuthenticators)

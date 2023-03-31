@@ -38,40 +38,52 @@ private fun MainScreen() {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        var key by remember { mutableStateOf("") }
-        var value by remember { mutableStateOf("") }
-
-        OutlinedTextField(
-            value = key,
-            onValueChange = { key = it },
-            label = { Text(text = "Key") },
-        )
-        OutlinedTextField(
-            value = value,
-            onValueChange = { value = it },
-            label = { Text(text = "Value") },
-        )
-        Row(modifier = Modifier.padding(top = 8.dp)) {
-            Button(
-                onClick = { biometrics.authenticate { safeStorage.save(key, value) } },
-                content = { Text(text = "Save") },
-            )
-            Button(
-                modifier = Modifier.padding(horizontal = 8.dp),
-                onClick = { biometrics.authenticate { value = safeStorage.get(key) } },
-                content = { Text(text = "Get") },
-            )
-            Button(
-                onClick = {
-                    biometrics.authenticate {
-                        safeStorage.clear()
-                        key = ""
-                        value = ""
-                    }
-                },
-                content = { Text(text = "Clear") },
-            )
+        if (biometrics.isAvailable()) {
+            BiometricsScreen(biometrics, safeStorage)
+        } else {
+            Text(text = "Biometrics not available")
         }
+    }
+}
+
+@Composable
+private fun BiometricsScreen(
+    biometrics: Biometrics,
+    safeStorage: SafeStorage
+) {
+    var key by remember { mutableStateOf("") }
+    var value by remember { mutableStateOf("") }
+
+    OutlinedTextField(
+        value = key,
+        onValueChange = { key = it },
+        label = { Text(text = "Key") },
+    )
+    OutlinedTextField(
+        value = value,
+        onValueChange = { value = it },
+        label = { Text(text = "Value") },
+    )
+    Row(modifier = Modifier.padding(top = 8.dp)) {
+        Button(
+            onClick = { biometrics.authenticate { safeStorage.save(key, value) } },
+            content = { Text(text = "Save") },
+        )
+        Button(
+            modifier = Modifier.padding(horizontal = 8.dp),
+            onClick = { biometrics.authenticate { value = safeStorage.get(key) } },
+            content = { Text(text = "Get") },
+        )
+        Button(
+            onClick = {
+                biometrics.authenticate {
+                    safeStorage.clear()
+                    key = ""
+                    value = ""
+                }
+            },
+            content = { Text(text = "Clear") },
+        )
     }
 }
 
