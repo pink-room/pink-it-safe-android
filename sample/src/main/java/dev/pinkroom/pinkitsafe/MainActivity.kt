@@ -38,54 +38,60 @@ private fun MainScreen() {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        if (biometrics.isAvailable()) {
-            BiometricsScreen(biometrics, safeStorage)
-        } else {
+        var biometricsAvailable by remember { mutableStateOf(true) }
+        if (!biometricsAvailable) {
             Text(text = "Biometrics not available")
+        }
+        var key by remember { mutableStateOf("") }
+        var value by remember { mutableStateOf("") }
+
+        OutlinedTextField(
+            value = key,
+            onValueChange = { key = it },
+            label = { Text(text = "Key") },
+        )
+        OutlinedTextField(
+            value = value,
+            onValueChange = { value = it },
+            label = { Text(text = "Value") },
+        )
+        Row(modifier = Modifier.padding(top = 8.dp)) {
+            Button(
+                onClick = {
+                    biometrics.authenticate({ biometricsAvailable = false }) {
+                        safeStorage.save(key, value)
+                    }
+                },
+                content = { Text(text = "Save") },
+            )
+            Button(
+                modifier = Modifier.padding(horizontal = 8.dp),
+                onClick = {
+                    biometrics.authenticate({ biometricsAvailable = false }) {
+                        value = safeStorage.get(key)
+                    }
+                },
+                content = { Text(text = "Get") },
+            )
+            Button(
+                onClick = {
+                    biometrics.authenticate({ biometricsAvailable = false }) {
+                        safeStorage.clear()
+                        key = ""
+                        value = ""
+                    }
+                },
+                content = { Text(text = "Clear") },
+            )
         }
     }
 }
 
-@Composable
-private fun BiometricsScreen(
-    biometrics: Biometrics,
-    safeStorage: SafeStorage
-) {
-    var key by remember { mutableStateOf("") }
-    var value by remember { mutableStateOf("") }
-
-    OutlinedTextField(
-        value = key,
-        onValueChange = { key = it },
-        label = { Text(text = "Key") },
-    )
-    OutlinedTextField(
-        value = value,
-        onValueChange = { value = it },
-        label = { Text(text = "Value") },
-    )
-    Row(modifier = Modifier.padding(top = 8.dp)) {
-        Button(
-            onClick = { biometrics.authenticate { safeStorage.save(key, value) } },
-            content = { Text(text = "Save") },
-        )
-        Button(
-            modifier = Modifier.padding(horizontal = 8.dp),
-            onClick = { biometrics.authenticate { value = safeStorage.get(key) } },
-            content = { Text(text = "Get") },
-        )
-        Button(
-            onClick = {
-                biometrics.authenticate {
-                    safeStorage.clear()
-                    key = ""
-                    value = ""
-                }
-            },
-            content = { Text(text = "Clear") },
-        )
-    }
-}
-
-private fun Biometrics.authenticate(success: () -> Unit) =
-    authenticate("Authenticate", success = success)
+private fun Biometrics.authenticate(
+    noBiometricsErrorHandle: (@AuthenticationErrorStatus Int) -> Unit,
+    success: () -> Unit
+) = authenticate(
+    "Authenticate",
+    noBiometricsErrorHandle = noBiometricsErrorHandle,
+    success = success
+)

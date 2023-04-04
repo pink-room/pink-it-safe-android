@@ -48,6 +48,32 @@ class Biometrics private constructor() {
         allowedAuthenticators: @AuthenticatorTypes Int = Authenticators.BIOMETRIC_STRONG
     ) = canAuthenticate(allowedAuthenticators) == BiometricManager.BIOMETRIC_SUCCESS
 
+    fun authenticate(
+        title: String,
+        subtitle: String? = null,
+        description: String? = null,
+        negativeButtonText: String = context.getString(android.R.string.cancel),
+        allowedAuthenticators: @AuthenticatorTypes Int = Authenticators.BIOMETRIC_STRONG,
+        error: (errorCode: Int, errString: CharSequence) -> Unit = { _, _ -> },
+        noBiometricsErrorHandle: (errorCode: @AuthenticationErrorStatus Int) -> Unit = { _ -> },
+        success: () -> Unit,
+    ) {
+        val canAuthCode = canAuthenticate(allowedAuthenticators)
+        if (canAuthCode == BiometricManager.BIOMETRIC_SUCCESS) {
+            authenticate(
+                title,
+                subtitle,
+                description,
+                negativeButtonText,
+                allowedAuthenticators,
+                error,
+                success
+            )
+        } else {
+            noBiometricsErrorHandle(canAuthCode)
+        }
+    }
+
     private fun canAuthenticate(allowedAuthenticators: @AuthenticatorTypes Int) =
         BiometricManager.from(context).canAuthenticate(allowedAuthenticators)
 
