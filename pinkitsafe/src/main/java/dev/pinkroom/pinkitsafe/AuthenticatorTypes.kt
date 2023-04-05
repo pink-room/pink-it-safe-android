@@ -14,3 +14,15 @@ import androidx.biometric.BiometricManager
 )
 @Retention(AnnotationRetention.SOURCE)
 annotation class AuthenticatorTypes
+
+@Target(AnnotationTarget.TYPE)
+@IntDef(
+    BiometricManager.BIOMETRIC_STATUS_UNKNOWN,
+    BiometricManager.BIOMETRIC_ERROR_UNSUPPORTED,
+    BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE,
+    BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED,
+    BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE,
+    BiometricManager.BIOMETRIC_ERROR_SECURITY_UPDATE_REQUIRED
+)
+@Retention(AnnotationRetention.SOURCE)
+annotation class AuthenticationErrorStatus

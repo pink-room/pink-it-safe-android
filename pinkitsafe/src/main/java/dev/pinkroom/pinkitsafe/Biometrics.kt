@@ -2,6 +2,7 @@ package dev.pinkroom.pinkitsafe
 
 import android.content.Context
 import androidx.biometric.BiometricManager
+import androidx.biometric.BiometricManager.Authenticators
 import androidx.biometric.BiometricPrompt
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -33,7 +34,7 @@ class Biometrics private constructor() {
         subtitle: String? = null,
         description: String? = null,
         negativeButtonText: String = context.getString(android.R.string.cancel),
-        allowedAuthenticators: @AuthenticatorTypes Int = BiometricManager.Authenticators.BIOMETRIC_STRONG,
+        allowedAuthenticators: @AuthenticatorTypes Int = Authenticators.BIOMETRIC_STRONG,
         error: (errorCode: Int, errString: CharSequence) -> Unit = { _, _ -> },
         success: () -> Unit,
     ) {
@@ -42,6 +43,39 @@ class Biometrics private constructor() {
             buildPromptInfo(title, subtitle, description, negativeButtonText, allowedAuthenticators)
         biometricPrompt.authenticate(promptInfo)
     }
+
+    fun isAvailable(
+        allowedAuthenticators: @AuthenticatorTypes Int = Authenticators.BIOMETRIC_STRONG
+    ) = canAuthenticate(allowedAuthenticators) == BiometricManager.BIOMETRIC_SUCCESS
+
+    fun authenticate(
+        title: String,
+        subtitle: String? = null,
+        description: String? = null,
+        negativeButtonText: String = context.getString(android.R.string.cancel),
+        allowedAuthenticators: @AuthenticatorTypes Int = Authenticators.BIOMETRIC_STRONG,
+        error: (errorCode: Int, errString: CharSequence) -> Unit = { _, _ -> },
+        noBiometricsErrorHandle: (errorCode: @AuthenticationErrorStatus Int) -> Unit = { _ -> },
+        success: () -> Unit,
+    ) {
+        val canAuthCode = canAuthenticate(allowedAuthenticators)
+        if (canAuthCode == BiometricManager.BIOMETRIC_SUCCESS) {
+            authenticate(
+                title,
+                subtitle,
+                description,
+                negativeButtonText,
+                allowedAuthenticators,
+                error,
+                success
+            )
+        } else {
+            noBiometricsErrorHandle(canAuthCode)
+        }
+    }
+
+    private fun canAuthenticate(allowedAuthenticators: @AuthenticatorTypes Int) =
+        BiometricManager.from(context).canAuthenticate(allowedAuthenticators)
 
     private fun buildBiometricPrompt(
         success: () -> Unit,
